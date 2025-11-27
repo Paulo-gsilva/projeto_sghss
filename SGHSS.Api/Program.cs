@@ -16,6 +16,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddScoped<IPacienteService, PacienteService>();
+builder.Services.AddScoped<IProfissionalSaudeService, ProfissionalSaudeService>();
 
 // JWT Auth
 var jwtSettings = builder.Configuration.GetSection("Jwt");
