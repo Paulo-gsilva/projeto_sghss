@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IProfissionalSaudeService, ProfissionalSaudeService>();
+builder.Services.AddScoped<IUnidadeHospitalarService, UnidadeHospitalarService>();
 
 // JWT Auth
 var jwtSettings = builder.Configuration.GetSection("Jwt");
