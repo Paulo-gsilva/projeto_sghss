@@ -23,15 +23,15 @@ public class PacienteReadDto
 
     public PacienteReadDto() { }
 
-    public PacienteReadDto(Paciente p)
+    public PacienteReadDto(Paciente paciente)
     {
-        Id = p.Id;
-        Nome = p.Nome;
-        Cpf = p.Cpf;
-        DataNascimento = p.DataNascimento;
-        Email = p.Email;
-        Telefone = p.Telefone;
-        Endereco = p.Endereco;
-        Ativo = p.Ativo;
+        Id = paciente.Id;
+        Nome = paciente.Nome;
+        Cpf = paciente.Cpf;
+        DataNascimento = paciente.DataNascimento;
+        Email = paciente.Email;
+        Telefone = paciente.Telefone;
+        Endereco = paciente.Endereco;
+        Ativo = paciente.Ativo;
     }
 }

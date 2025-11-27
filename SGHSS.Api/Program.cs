@@ -19,6 +19,7 @@ builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IProfissionalSaudeService, ProfissionalSaudeService>();
 builder.Services.AddScoped<IUnidadeHospitalarService, UnidadeHospitalarService>();
 builder.Services.AddScoped<ILeitoService, LeitoService>();
+builder.Services.AddScoped<IConsultaService, ConsultaService>();
 
 // JWT Auth
 var jwtSettings = builder.Configuration.GetSection("Jwt");
