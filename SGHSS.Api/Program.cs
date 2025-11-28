@@ -4,7 +4,6 @@ using SGHSS.Api.Data;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using SGHSS.Api.Models;
 using SGHSS.Api.Filters;
 using SGHSS.Api.Services;
 using SGHSS.Api.Services.Interfaces;
@@ -21,6 +20,8 @@ builder.Services.AddScoped<IUnidadeHospitalarService, UnidadeHospitalarService>(
 builder.Services.AddScoped<ILeitoService, LeitoService>();
 builder.Services.AddScoped<IConsultaService, ConsultaService>();
 builder.Services.AddScoped<IInternacaoService, InternacaoService>();
+builder.Services.AddScoped<IProntuarioService, ProntuarioService>();
+builder.Services.AddScoped<IReceitaService, ReceitaService>();
 
 // JWT Auth
 var jwtSettings = builder.Configuration.GetSection("Jwt");

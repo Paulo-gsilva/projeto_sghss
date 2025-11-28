@@ -11,9 +11,12 @@ public class ConsultaService : IConsultaService
 {
     private readonly ApplicationDbContext _context;
 
-    public ConsultaService(ApplicationDbContext context)
+    private readonly IProntuarioService _prontuarioService;
+
+    public ConsultaService(ApplicationDbContext context, IProntuarioService prontuarioService)
     {
         _context = context;
+        _prontuarioService = prontuarioService;
     }
 
     public async Task<IReadOnlyList<ConsultaReadDto>> GetAllAsync()
@@ -101,16 +104,21 @@ public class ConsultaService : IConsultaService
 
     public async Task<bool> ConcluirAsync(int id)
     {
-        Consulta? consulta = await _context.Consultas
-            .FirstOrDefaultAsync(c => c.Id == id);
+        Consulta? consulta = await _context.Consultas.FirstOrDefaultAsync(c => c.Id == id);
 
-        if (consulta == null)
-        {
-            return false;
-        }
+        if (consulta == null) return false;
 
         consulta.Status = StatusConsulta.Concluida;
         await _context.SaveChangesAsync();
+
+        ProntuarioCreateDto prontDto = new ProntuarioCreateDto
+        {
+            ConsultaId = id,
+            Anotacoes = "Atendimento concluído",
+            Diagnostico = null,
+            PlanoTratamento = null
+        };
+        ProntuarioReadDto created = await _prontuarioService.CreateOrUpdateByConsultaAsync(prontDto);
         return true;
     }
 }
