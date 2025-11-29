@@ -1,61 +1,80 @@
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using SGHSS.Api.Data;
-using SGHSS.Api.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using SGHSS.Api.DTOs;
+using SGHSS.Api.Services.Interfaces;
 
-namespace SGHSS.Api.Controllers
+namespace SGHSS.Api.Controllers;
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    private readonly IUsuarioService _usuarioService;
+
+    public AuthController(IUsuarioService usuarioService)
     {
-        private readonly ApplicationDbContext _db;
-        private readonly IConfiguration _config;
+        _usuarioService = usuarioService;
+    }
 
-        public AuthController(ApplicationDbContext db, IConfiguration config)
+    [HttpPost("register")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<ActionResult<UsuarioReadDto>> Register(UsuarioRegisterDto dto)
+    {
+        try
         {
-            _db = db;
-            _config = config;
+            UsuarioReadDto created = await _usuarioService.RegistrarAsync(dto);
+            return CreatedAtAction(nameof(GetUsuario), new { id = created.Id }, created);
         }
-
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        catch (System.InvalidOperationException ex)
         {
-            var user = await _db.Usuarios.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null || !user.ValidarSenha(dto.Password)) return Unauthorized();
-
-            var token = GenerateToken(user);
-            return Ok(new { token });
-        }
-
-        private string GenerateToken(Usuario user)
-        {
-            var key = Encoding.ASCII.GetBytes(_config["Jwt:Key"]!);
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Perfil.ToString())
-            };
-
-            var descriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_config["Jwt:ExpiresMinutes"] ?? "60")),
-                Issuer = _config["Jwt:Issuer"],
-                Audience = _config["Jwt:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(descriptor);
-            return tokenHandler.WriteToken(token);
+            return BadRequest(ex.Message);
         }
     }
 
-    public record LoginDto(string Username, string Password);
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<LoginResponseDto>> Login(LoginRequestDto dto)
+    {
+        LoginResponseDto? response = await _usuarioService.LoginAsync(dto);
+        if (response == null)
+        {
+            return Unauthorized("Credenciais inválidas.");
+        }
+
+        return Ok(response);
+    }
+
+    [HttpGet("usuarios")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<ActionResult<IEnumerable<UsuarioReadDto>>> GetUsuarios()
+    {
+        IReadOnlyList<UsuarioReadDto> list = await _usuarioService.GetAllAsync();
+        return Ok(list);
+    }
+
+    [HttpGet("usuarios/{id:int}")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<ActionResult<UsuarioReadDto>> GetUsuario(int id)
+    {
+        UsuarioReadDto? dto = await _usuarioService.GetByIdAsync(id);
+        if (dto == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(dto);
+    }
+
+    [HttpDelete("usuarios/{id:int}")]
+    [Authorize(Roles = "Administrador")]
+    public async Task<IActionResult> InativarUsuario(int id)
+    {
+        bool ok = await _usuarioService.InativarAsync(id);
+        if (!ok)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
 }

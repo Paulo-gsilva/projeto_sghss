@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SGHSS.Api.DTOs;
 using SGHSS.Api.Services.Interfaces;
@@ -17,6 +18,7 @@ public class InternacoesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<IEnumerable<InternacaoReadDto>>> GetAll()
     {
         IReadOnlyList<InternacaoReadDto> list = await _service.GetAllAsync();
@@ -24,6 +26,7 @@ public class InternacoesController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<InternacaoReadDto>> Get(int id)
     {
         InternacaoReadDto? dto = await _service.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class InternacoesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<InternacaoReadDto>> Internar(InternacaoCreateDto dto)
     {
         try
@@ -50,6 +54,7 @@ public class InternacoesController : ControllerBase
     }
 
     [HttpPatch("{id:int}/transferir/{novoLeitoId:int}")]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<IActionResult> Transferir(int id, int novoLeitoId)
     {
         try
@@ -69,6 +74,7 @@ public class InternacoesController : ControllerBase
     }
 
     [HttpPatch("{id:int}/alta")]
+    [Authorize(Roles = "ProfissionalSaude")]
     public async Task<IActionResult> DarAlta(int id)
     {
         bool ok = await _service.DarAltaAsync(id);

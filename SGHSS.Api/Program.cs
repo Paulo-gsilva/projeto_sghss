@@ -22,28 +22,31 @@ builder.Services.AddScoped<IConsultaService, ConsultaService>();
 builder.Services.AddScoped<IInternacaoService, InternacaoService>();
 builder.Services.AddScoped<IProntuarioService, ProntuarioService>();
 builder.Services.AddScoped<IReceitaService, ReceitaService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 // JWT Auth
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new Exception("JWT key missing"));
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters()
+string jwtSecret = builder.Configuration["Jwt:Secret"] ?? "chave-super-secreta-trocar-em-producao";
+string jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SGHSS";
+string jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SGHSS-Clients";
+
+SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = key
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services
     .AddControllers(options =>

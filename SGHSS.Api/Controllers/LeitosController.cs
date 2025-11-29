@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SGHSS.Api.DTOs;
@@ -17,6 +18,7 @@ public class LeitosController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<IEnumerable<LeitoReadDto>>> GetAll()
     {
         IReadOnlyList<LeitoReadDto> list = await _service.GetAllAsync();
@@ -24,6 +26,7 @@ public class LeitosController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<LeitoReadDto>> Get(int id)
     {
         LeitoReadDto? dto = await _service.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class LeitosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<ActionResult<LeitoReadDto>> Create(LeitoCreateDto dto)
     {
         LeitoReadDto created = await _service.CreateAsync(dto);
@@ -43,6 +47,7 @@ public class LeitosController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Update(int id, LeitoCreateDto dto)
     {
         bool updated = await _service.UpdateAsync(id, dto);
@@ -55,6 +60,7 @@ public class LeitosController : ControllerBase
     }
 
     [HttpPatch("{id:int}/status/{status:int}")]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<IActionResult> AlterarStatus(int id, int status)
     {
         try

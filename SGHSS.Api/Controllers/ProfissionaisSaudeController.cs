@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SGHSS.Api.DTOs;
@@ -17,6 +18,7 @@ public class ProfissionaisSaudeController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<IEnumerable<ProfissionalSaudeReadDto>>> GetAll()
     {
         IReadOnlyList<ProfissionalSaudeReadDto> list = await _service.GetAllAsync();
@@ -24,6 +26,7 @@ public class ProfissionaisSaudeController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Administrador,ProfissionalSaude")]
     public async Task<ActionResult<ProfissionalSaudeReadDto>> Get(int id)
     {
         ProfissionalSaudeReadDto? dto = await _service.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class ProfissionaisSaudeController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<ActionResult<ProfissionalSaudeReadDto>> Create(ProfissionalSaudeCreateDto dto)
     {
         try
@@ -50,6 +54,7 @@ public class ProfissionaisSaudeController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Update(int id, ProfissionalSaudeCreateDto dto)
     {
         bool updated = await _service.UpdateAsync(id, dto);
@@ -62,6 +67,7 @@ public class ProfissionaisSaudeController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Delete(int id)
     {
         bool inativado = await _service.InativarAsync(id);

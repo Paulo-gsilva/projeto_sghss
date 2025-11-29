@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SGHSS.Api.DTOs;
@@ -17,6 +18,7 @@ public class UnidadesHospitalaresController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<UnidadeHospitalarReadDto>>> GetAll()
     {
         IReadOnlyList<UnidadeHospitalarReadDto> list = await _service.GetAllAsync();
@@ -24,6 +26,7 @@ public class UnidadesHospitalaresController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [AllowAnonymous]
     public async Task<ActionResult<UnidadeHospitalarReadDto>> Get(int id)
     {
         UnidadeHospitalarReadDto? dto = await _service.GetByIdAsync(id);
@@ -36,6 +39,7 @@ public class UnidadesHospitalaresController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<ActionResult<UnidadeHospitalarReadDto>> Create(UnidadeHospitalarCreateDto dto)
     {
         UnidadeHospitalarReadDto created = await _service.CreateAsync(dto);
@@ -43,6 +47,7 @@ public class UnidadesHospitalaresController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Update(int id, UnidadeHospitalarCreateDto dto)
     {
         bool updated = await _service.UpdateAsync(id, dto);
