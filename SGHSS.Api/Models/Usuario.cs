@@ -9,22 +9,21 @@ public class Usuario
 
     public string Username { get; set; } = null!;
 
-    public string SenhaHash { get; set; } = null!;
+    public string Email { get; set; } = null!;
 
-    public PerfilUsuario Perfil { get; set; }
+    public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
+
+    public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+
+    public Role Role { get; set; }
+
+    public bool Ativo { get; set; } = true;
 
     public int? PacienteId { get; set; }
 
     public Paciente? Paciente { get; set; }
 
-    public int? ProfissionalSaudeId { get; set;}
-
+    public int? ProfissionalSaudeId { get; set; }
+    
     public ProfissionalSaude? ProfissionalSaude { get; set; }
-
-    public bool ValidarSenha(string pwd) => BCrypt.Net.BCrypt.Verify(pwd, SenhaHash);
-
-    public void AlterarSenha(string pwd)
-    {
-        SenhaHash = BCrypt.Net.BCrypt.HashPassword(pwd);
-    }
 }

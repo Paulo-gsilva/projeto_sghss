@@ -242,9 +242,12 @@ namespace SGHSS.Api.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Username = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    SenhaHash = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Perfil = table.Column<int>(type: "int", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "longblob", nullable: false),
+                    PasswordSalt = table.Column<byte[]>(type: "longblob", nullable: false),
+                    Role = table.Column<int>(type: "int", nullable: false),
+                    Ativo = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     PacienteId = table.Column<int>(type: "int", nullable: true),
                     ProfissionalSaudeId = table.Column<int>(type: "int", nullable: true)
                 },
@@ -255,12 +258,14 @@ namespace SGHSS.Api.Migrations
                         name: "FK_Usuarios_Pacientes_PacienteId",
                         column: x => x.PacienteId,
                         principalTable: "Pacientes",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Usuarios_ProfissionaisSaude_ProfissionalSaudeId",
                         column: x => x.ProfissionalSaudeId,
                         principalTable: "ProfissionaisSaude",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -334,6 +339,12 @@ namespace SGHSS.Api.Migrations
                 name: "IX_Prontuarios_ConsultaId",
                 table: "Prontuarios",
                 column: "ConsultaId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_Email",
+                table: "Usuarios",
+                column: "Email",
                 unique: true);
 
             migrationBuilder.CreateIndex(

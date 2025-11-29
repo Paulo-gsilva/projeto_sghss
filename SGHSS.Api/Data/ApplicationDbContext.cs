@@ -37,19 +37,21 @@ public class ApplicationDbContext : DbContext
             .HasIndex(u => u.Username)
             .IsUnique();
 
-        // Usuario 1 - 0..1 Paciente
+        builder.Entity<Usuario>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
         builder.Entity<Usuario>()
             .HasOne(u => u.Paciente)
             .WithOne(p => p.Usuario)
             .HasForeignKey<Usuario>(u => u.PacienteId)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // Usuario 1 - 0..1 ProfissionalSaude
         builder.Entity<Usuario>()
             .HasOne(u => u.ProfissionalSaude)
             .WithOne(p => p.Usuario)
             .HasForeignKey<Usuario>(u => u.ProfissionalSaudeId)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // UnidadeHospitalar 1 - N Leito
         builder.Entity<UnidadeHospitalar>()

@@ -335,24 +335,38 @@ namespace SGHSS.Api.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
                     b.Property<int?>("PacienteId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Perfil")
-                        .HasColumnType("int");
+                    b.Property<byte[]>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("longblob");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("longblob");
 
                     b.Property<int?>("ProfissionalSaudeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("SenhaHash")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("PacienteId")
                         .IsUnique();
@@ -454,11 +468,13 @@ namespace SGHSS.Api.Migrations
                 {
                     b.HasOne("SGHSS.Api.Models.Paciente", "Paciente")
                         .WithOne("Usuario")
-                        .HasForeignKey("SGHSS.Api.Models.Usuario", "PacienteId");
+                        .HasForeignKey("SGHSS.Api.Models.Usuario", "PacienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SGHSS.Api.Models.ProfissionalSaude", "ProfissionalSaude")
                         .WithOne("Usuario")
-                        .HasForeignKey("SGHSS.Api.Models.Usuario", "ProfissionalSaudeId");
+                        .HasForeignKey("SGHSS.Api.Models.Usuario", "ProfissionalSaudeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Paciente");
 
