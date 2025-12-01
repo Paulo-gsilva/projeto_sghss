@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using SGHSS.Api.Models;
 
 namespace SGHSS.Api.Data;
 
+[ExcludeFromCodeCoverage]
 public static class DbInitializer
 {
     public static async Task SeedAdminAsync(ApplicationDbContext context)
