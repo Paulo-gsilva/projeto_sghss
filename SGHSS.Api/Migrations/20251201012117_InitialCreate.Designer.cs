@@ -12,7 +12,7 @@ using SGHSS.Api.Data;
 namespace SGHSS.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251130200811_InitialCreate")]
+    [Migration("20251201012117_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

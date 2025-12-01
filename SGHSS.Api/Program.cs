@@ -97,6 +97,13 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    IServiceProvider services = scope.ServiceProvider;
+    ApplicationDbContext context = services.GetRequiredService<ApplicationDbContext>();
+    await DbInitializer.SeedAdminAsync(context);
+}
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
