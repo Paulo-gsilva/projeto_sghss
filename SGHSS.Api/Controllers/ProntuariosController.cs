@@ -30,7 +30,7 @@ public class ProntuariosController : ControllerBase
         {
             string? claimPacienteId = User.FindFirst("pacienteId")?.Value;
 
-            ConsultaReadDto? consultaReadDto = await _consultaService.GetByIdAsync(dto.ConsultaId);
+            ConsultaReadDto? consultaReadDto = await _consultaService.GetByIdAsync(dto!.ConsultaId);
 
             if (string.IsNullOrEmpty(claimPacienteId) || consultaReadDto == null || consultaReadDto.PacienteId.ToString() != claimPacienteId.ToString())
             {
@@ -56,7 +56,7 @@ public class ProntuariosController : ControllerBase
         {
             string? claimPacienteId = User.FindFirst("pacienteId")?.Value;
 
-            ConsultaReadDto? consultaReadDto = await _consultaService.GetByIdAsync(dto.ConsultaId);
+            ConsultaReadDto? consultaReadDto = await _consultaService.GetByIdAsync(dto!.ConsultaId);
 
             if (string.IsNullOrEmpty(claimPacienteId) || consultaReadDto == null || consultaReadDto.PacienteId.ToString() != claimPacienteId.ToString())
             {

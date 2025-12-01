@@ -25,12 +25,6 @@ public class UsuarioService: IUsuarioService
 
     public async Task<UsuarioReadDto> RegistrarAsync(UsuarioRegisterDto dto)
     {
-        bool usernameExists = await _context.Usuarios.AnyAsync(u => u.Username == dto.Username);
-        if (usernameExists)
-        {
-            throw new InvalidOperationException("Username já está em uso.");
-        }
-
         bool emailExists = await _context.Usuarios.AnyAsync(u => u.Email == dto.Email);
         if (emailExists)
         {
@@ -97,7 +91,7 @@ public class UsuarioService: IUsuarioService
         Usuario? usuario = await _context.Usuarios
             .Include(u => u.Paciente)
             .Include(u => u.ProfissionalSaude)
-            .FirstOrDefaultAsync(u => u.Username == dto.Username && u.Ativo);
+            .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Ativo);
 
         if (usuario == null)
         {
@@ -198,16 +192,19 @@ public class UsuarioService: IUsuarioService
 
     private string GenerateJwtToken(Usuario usuario)
     {
-        string secret = _configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret não configurado.");
-        string issuer = _configuration["Jwt:Issuer"] ?? "SGHSS";
-        string audience = _configuration["Jwt:Audience"] ?? "SGHSS-Clients";
+        string? secret = _configuration["Jwt:Secret"];
+        string? issuer = _configuration["Jwt:Issuer"];
+        string? audience = _configuration["Jwt:Audience"];
+
+        Console.WriteLine($"[GenerateJwtToken] secret length = {(secret?.Length ?? 0)}, issuer = '{issuer}', audience = '{audience}'");
+
 
         SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         Claim[] claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, usuario.Username),
+            new Claim(JwtRegisteredClaimNames.Sub, usuario.Email),
             new Claim("userid", usuario.Id.ToString()),
             new Claim(ClaimTypes.Role, usuario.Role.ToString()),
             new Claim("role", usuario.Role.ToString()),
@@ -219,7 +216,7 @@ public class UsuarioService: IUsuarioService
             issuer,
             audience,
             claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(4),
             signingCredentials: creds
         );
 

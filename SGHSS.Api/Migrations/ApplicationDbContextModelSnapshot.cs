@@ -361,7 +361,7 @@ namespace SGHSS.Api.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -372,9 +372,6 @@ namespace SGHSS.Api.Migrations
                         .IsUnique();
 
                     b.HasIndex("ProfissionalSaudeId")
-                        .IsUnique();
-
-                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Usuarios");

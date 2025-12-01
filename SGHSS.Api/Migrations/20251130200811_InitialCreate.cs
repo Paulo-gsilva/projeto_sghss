@@ -240,7 +240,7 @@ namespace SGHSS.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Username = table.Column<string>(type: "varchar(255)", nullable: false)
+                    Username = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Email = table.Column<string>(type: "varchar(255)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -357,12 +357,6 @@ namespace SGHSS.Api.Migrations
                 name: "IX_Usuarios_ProfissionalSaudeId",
                 table: "Usuarios",
                 column: "ProfissionalSaudeId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Usuarios_Username",
-                table: "Usuarios",
-                column: "Username",
                 unique: true);
         }
 

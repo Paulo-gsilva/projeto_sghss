@@ -12,7 +12,7 @@ using SGHSS.Api.Data;
 namespace SGHSS.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251129012119_InitialCreate")]
+    [Migration("20251130200811_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -364,7 +364,7 @@ namespace SGHSS.Api.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -375,9 +375,6 @@ namespace SGHSS.Api.Migrations
                         .IsUnique();
 
                     b.HasIndex("ProfissionalSaudeId")
-                        .IsUnique();
-
-                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Usuarios");

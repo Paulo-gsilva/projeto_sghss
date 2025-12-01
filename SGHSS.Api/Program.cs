@@ -25,9 +25,9 @@ builder.Services.AddScoped<IReceitaService, ReceitaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 // JWT Auth
-string jwtSecret = builder.Configuration["Jwt:Secret"] ?? "chave-super-secreta-trocar-em-producao";
-string jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SGHSS";
-string jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SGHSS-Clients";
+string? jwtSecret = builder.Configuration["Jwt:Secret"];
+string? jwtIssuer = builder.Configuration["Jwt:Issuer"];
+string? jwtAudience = builder.Configuration["Jwt:Audience"];
 
 SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
@@ -40,6 +40,7 @@ builder.Services
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
             IssuerSigningKey = key
@@ -54,25 +55,38 @@ builder.Services
         options.Filters.Add<ResponseWrapperFilter>();
         options.Filters.Add<ExceptionWrapperFilter>();
     });
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SGHSS API", Version = "v1" });
 
-    // JWT Authorization in Swagger
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
+        Description = "Insira o token JWT no formato: Bearer {seu token}",
         In = ParameterLocation.Header,
-        Description = "Insira o token JWT"
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",         
+        BearerFormat = "JWT"
     };
+
     c.AddSecurityDefinition("Bearer", securityScheme);
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        { securityScheme, new string[] {} }
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
