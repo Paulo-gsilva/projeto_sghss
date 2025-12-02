@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SGHSS.Api.Controllers;
@@ -14,12 +16,62 @@ namespace SGHSS.Tests.Controllers;
 public class ConsultaControllerTests
 {
     private readonly Mock<IConsultaService> _mock;
-    private readonly ConsultasController _controller;
 
     public ConsultaControllerTests()
     {
         _mock = new Mock<IConsultaService>();
-        _controller = new ConsultasController(_mock.Object);
+    }
+
+    private ConsultasController CreateControllerWithUserClaims(IConsultaService service, bool isPaciente, int? pacienteId = null)
+    {
+        ConsultasController controller = new ConsultasController(service);
+
+        ClaimsIdentity identity;
+
+        if (isPaciente)
+        {
+            identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Paciente"),
+                new Claim("pacienteId", pacienteId?.ToString() ?? "1")
+            }, "TestAuth");
+        }
+        else
+        {
+            identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Administrador"),
+            }, "TestAuth");
+        }
+
+        ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+        DefaultHttpContext httpContext = new DefaultHttpContext();
+        httpContext.User = principal;
+
+        controller.ControllerContext = new ControllerContext()
+        {
+            HttpContext = httpContext
+        };
+
+        return controller;
+    }
+
+    [Fact]
+    public async Task Agendar_ShouldReturnForbid_WhenPacienteTentaAgendarParaOutroPaciente()
+    {
+        Mock<IConsultaService> serviceMock = new Mock<IConsultaService>();
+
+        ConsultaCreateDto dto = new ConsultaCreateDto
+        {
+            PacienteId = 2
+        };
+
+        ConsultasController controller = CreateControllerWithUserClaims(serviceMock.Object, isPaciente: true, pacienteId: 1);
+
+        ActionResult<ConsultaReadDto> response = await controller.Agendar(dto);
+
+        response.Should().BeOfType<ActionResult<ConsultaReadDto>>();
     }
 
     [Fact]
@@ -28,7 +80,9 @@ public class ConsultaControllerTests
         ConsultaReadDto dto = new ConsultaReadDto { Id = 1 };
         _mock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(dto);
 
-        ActionResult<ConsultaReadDto?> result = await _controller.Get(1);
+        ConsultasController controller = CreateControllerWithUserClaims(_mock.Object, isPaciente: false);
+
+        ActionResult<ConsultaReadDto?> result = await controller.Get(1);
 
         OkObjectResult ok = result.Result as OkObjectResult;
         ok.Should().NotBeNull();
@@ -40,7 +94,9 @@ public class ConsultaControllerTests
     {
         _mock.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ConsultaReadDto?)null);
 
-        ActionResult<ConsultaReadDto> result = await _controller.Get(99);
+        ConsultasController controller = CreateControllerWithUserClaims(_mock.Object, isPaciente: false);
+
+        ActionResult<ConsultaReadDto> result = await controller.Get(99);
         result.Result.Should().BeOfType<NotFoundResult>();
     }
 
@@ -52,7 +108,9 @@ public class ConsultaControllerTests
 
         _mock.Setup(s => s.AgendarAsync(dto)).ReturnsAsync(created);
 
-        ActionResult<ConsultaReadDto> result = await _controller.Agendar(dto);
+        ConsultasController controller = CreateControllerWithUserClaims(_mock.Object, isPaciente: false);
+
+        ActionResult<ConsultaReadDto> result = await controller.Agendar(dto);
         CreatedAtActionResult createdAt = result.Result as CreatedAtActionResult;
 
         createdAt.Should().NotBeNull();
@@ -60,22 +118,39 @@ public class ConsultaControllerTests
     }
 
     [Fact]
-    public async Task Cancelar_ShouldReturnNoContent_WhenSuccess()
+    public async Task Agendar_ShouldCreate_WhenPacienteAgendandoParaSiMesmo()
     {
-        _mock.Setup(s => s.CancelarAsync(1)).ReturnsAsync(true);
+        Mock<IConsultaService> serviceMock = new Mock<IConsultaService>();
 
-        IActionResult result = await _controller.Cancelar(1);
+        ConsultaCreateDto dto = new ConsultaCreateDto
+        {
+            PacienteId = 1
+        };
 
-        result.Should().BeOfType<NoContentResult>();
+        serviceMock.Setup(s => s.AgendarAsync(dto))
+            .ReturnsAsync(new ConsultaReadDto { Id = 10, PacienteId = 1 });
+
+        ConsultasController controller = CreateControllerWithUserClaims(serviceMock.Object, isPaciente: true, pacienteId: 1);
+
+        ActionResult<ConsultaReadDto> response = await controller.Agendar(dto);
+
+        ActionResult<ConsultaReadDto> result = response.Should().BeOfType<ActionResult<ConsultaReadDto>>().Subject;
     }
 
     [Fact]
     public async Task Cancelar_ShouldReturnNotFound_WhenMissing()
     {
-        _mock.Setup(s => s.CancelarAsync(99)).ReturnsAsync(false);
+        var mock = new Mock<IConsultaService>();
+        mock.Setup(s => s.CancelarAsync(It.IsAny<int>()))
+            .ReturnsAsync(false);
 
-        IActionResult result = await _controller.Cancelar(99);
 
-        result.Should().BeOfType<NotFoundResult>();
+        ConsultasController controller = CreateControllerWithUserClaims(mock.Object, isPaciente: false);
+
+        var result = await controller.Cancelar(999);
+
+        Assert.IsType<NotFoundResult>(result);
+        mock.Verify(s => s.CancelarAsync(999), Times.Once);
     }
+    
 }

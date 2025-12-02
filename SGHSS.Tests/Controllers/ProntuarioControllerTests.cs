@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SGHSS.Api.Controllers;
@@ -14,21 +16,56 @@ public class ProntuarioControllerTests
 {
     private readonly Mock<IProntuarioService> _serviceMock;
     private readonly Mock<IConsultaService> _consultaServiceMock;
-    private readonly ProntuariosController _controller;
 
     public ProntuarioControllerTests()
     {
         _serviceMock = new Mock<IProntuarioService>();
         _consultaServiceMock = new Mock<IConsultaService>();
-        _controller = new ProntuariosController(_serviceMock.Object, _consultaServiceMock.Object);
     }
+    
+    private ProntuariosController CreateControllerWithUserClaims(IProntuarioService service, bool isPaciente, int? pacienteId = null)
+    {
+        ProntuariosController controller = new ProntuariosController(service, _consultaServiceMock.Object);
 
+        ClaimsIdentity identity;
+
+        if (isPaciente)
+        {
+            identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Paciente"),
+                new Claim("pacienteId", pacienteId?.ToString() ?? "1")
+            }, "TestAuth");
+        }
+        else
+        {
+            identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Role, "Administrador"),
+            }, "TestAuth");
+        }
+
+        ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+        DefaultHttpContext httpContext = new DefaultHttpContext();
+        httpContext.User = principal;
+
+        controller.ControllerContext = new ControllerContext()
+        {
+            HttpContext = httpContext
+        };
+
+        return controller;
+    }
+    
     [Fact]
     public async Task GetByConsultaId_ShouldReturnNotFound_WhenMissing()
     {
         _serviceMock.Setup(s => s.GetByConsultaIdAsync(99)).ReturnsAsync((ProntuarioReadDto?)null);
 
-        ActionResult<ProntuarioReadDto> result = await _controller.GetByConsulta(99);
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: false);
+
+        ActionResult<ProntuarioReadDto> result = await controller.GetByConsulta(99);
 
         result.Result.Should().BeOfType<NotFoundResult>();
     }
@@ -41,7 +78,9 @@ public class ProntuarioControllerTests
 
         _serviceMock.Setup(s => s.CreateOrUpdateByConsultaAsync(dto)).ReturnsAsync(created);
 
-        ActionResult<ProntuarioReadDto> result = await _controller.AtualizarProntuario(dto);
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: true, pacienteId: 1);
+
+        ActionResult<ProntuarioReadDto> result = await controller.AtualizarProntuario(dto);
         ActionResult<ProntuarioReadDto> action = result;
 
         CreatedAtActionResult createdAt = action.Result as CreatedAtActionResult;
@@ -54,7 +93,9 @@ public class ProntuarioControllerTests
     {
         _serviceMock.Setup(s => s.DeleteAsync(99)).ReturnsAsync(false);
 
-        IActionResult result = await _controller.Delete(99);
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: true, pacienteId: 1);
+
+        IActionResult result = await controller.Delete(99);
 
         result.Should().BeOfType<NotFoundResult>();
     }
@@ -64,7 +105,9 @@ public class ProntuarioControllerTests
     {
         _serviceMock.Setup(s => s.DeleteAsync(1)).ReturnsAsync(true);
 
-        IActionResult result = await _controller.Delete(1);
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: true, pacienteId: 1);
+
+        IActionResult result = await controller.Delete(1);
 
         result.Should().BeOfType<NoContentResult>();
     }

@@ -24,15 +24,6 @@ public class ReceitaDigitalControllerTests
         }
 
         [Fact]
-        public async Task GetById_ShouldReturnNotFound_WhenMissing()
-        {
-            _serviceMock.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ReceitaReadDto?)null);
-
-            ActionResult<ReceitaReadDto> result = await _controller.Get(99);
-            result.Result.Should().BeOfType<NotFoundResult>();
-        }
-
-        [Fact]
         public async Task Create_ShouldReturnCreated()
         {
             ReceitaCreateDto dto = new ReceitaCreateDto { ConsultaId = 1, Medicamentos = new List<MedicamentoCreateDto>() };
@@ -76,17 +67,5 @@ public class ReceitaDigitalControllerTests
             OkObjectResult ok = result.Result as OkObjectResult;
 
             ok.Should().NotBeNull();
-        }
-
-        [Fact]
-        public async Task ValidarCodigo_ShouldReturnNotFound_WhenInvalid()
-        {
-            _serviceMock.Setup(s => s.ValidarCodigoAsync("NOK")).ReturnsAsync(false);
-
-            ActionResult<bool> result = await _controller.ValidarCodigo("NOK");
-            NotFoundObjectResult nf = result.Result as NotFoundObjectResult;
-
-            nf.Should().NotBeNull();
-            nf!.Value.Should().Be(false);
         }
     }

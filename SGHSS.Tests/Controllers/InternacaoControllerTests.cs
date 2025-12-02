@@ -26,7 +26,7 @@ public class InternacaoControllerTests
     {
         IReadOnlyList<InternacaoReadDto> list = new List<InternacaoReadDto>
         {
-            new InternacaoReadDto { Id = 1 }
+            new InternacaoReadDto { Id = 1, DataEntrada = DateTime.UtcNow, DataSaida = DateTime.UtcNow.AddDays(1), LeitoCodigo = "123", Motivo = "Doente" }
         };
 
         _mock.Setup(s => s.GetAllAsync()).ReturnsAsync(list);
