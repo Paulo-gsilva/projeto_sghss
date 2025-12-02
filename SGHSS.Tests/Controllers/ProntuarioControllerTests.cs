@@ -111,4 +111,32 @@ public class ProntuarioControllerTests
 
         result.Should().BeOfType<NoContentResult>();
     }
+
+    [Fact]
+    public async Task GetById_ShouldReturnOk_WhenFound()
+    {
+        ProntuarioReadDto dto = new ProntuarioReadDto { Id = 1, ConsultaId = 2, Diagnostico = "OK" };
+        _serviceMock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(dto);
+
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: false);
+
+        ActionResult<ProntuarioReadDto> result = await controller.Get(1);
+
+        OkObjectResult ok = result.Result as OkObjectResult;
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(dto);
+    }
+
+    [Fact]
+    public async Task GetById_ShouldReturnNotFound_WhenMissing()
+    {
+        _serviceMock.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((ProntuarioReadDto?)null);
+
+        ProntuariosController controller = CreateControllerWithUserClaims(_serviceMock.Object, isPaciente: false);
+
+        ActionResult<ProntuarioReadDto> result = await controller.Get(99);
+
+        result.Result.Should().BeOfType<NotFoundResult>();
+    }
+
 }

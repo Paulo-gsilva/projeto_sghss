@@ -59,4 +59,47 @@ public class ProfissionalSaudeControllerTests
         createdAt.Should().NotBeNull();
         createdAt!.Value.Should().BeEquivalentTo(created);
     }
+
+    [Fact]
+    public async Task Update_ShouldReturnOk_WhenUpdated()
+    {
+        ProfissionalSaudeCreateDto dto = new ProfissionalSaudeCreateDto { Nome = "Dr Update", Especialidade = "Cardio" };
+
+        _serviceMock.Setup(s => s.UpdateAsync(7, dto)).ReturnsAsync(true);
+
+        IActionResult result = await _controller.Update(7, dto);
+
+        result.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnNotFound_WhenMissing()
+    {
+        ProfissionalSaudeCreateDto dto = new ProfissionalSaudeCreateDto { Nome = "X" };
+        _serviceMock.Setup(s => s.UpdateAsync(999, dto)).ReturnsAsync(false);
+
+        IActionResult result = await _controller.Update(999, dto);
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task Delete_ShouldReturnNoContent_WhenDeleted()
+    {
+        _serviceMock.Setup(s => s.InativarAsync(5)).ReturnsAsync(true);
+
+        IActionResult result = await _controller.Delete(5);
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task Delete_ShouldReturnNotFound_WhenMissing()
+    {
+        _serviceMock.Setup(s => s.InativarAsync(999)).ReturnsAsync(false);
+
+        IActionResult result = await _controller.Delete(999);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
 }

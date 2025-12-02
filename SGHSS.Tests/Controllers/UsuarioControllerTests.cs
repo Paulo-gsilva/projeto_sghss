@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -8,6 +9,7 @@ using SGHSS.Api.Services.Interfaces;
 
 namespace SGHSS.Tests.Controllers;
 
+[ExcludeFromCodeCoverage]
 public class UsuarioControllerTests
 {
     private readonly Mock<IUsuarioService> _mock;
@@ -65,5 +67,47 @@ public class UsuarioControllerTests
 
         ok.Should().NotBeNull();
         ok!.Value.Should().BeEquivalentTo(list);
+    }
+
+    [Fact]
+    public async Task GetUsuario_ShouldReturnOk_WhenFound()
+    {
+        UsuarioReadDto usuario = new UsuarioReadDto { Id = 1, Username = "admin" };
+        _mock.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(usuario);
+
+        ActionResult<UsuarioReadDto> result = await _controller.GetUsuario(1);
+        OkObjectResult ok = result.Result as OkObjectResult;
+
+        ok.Should().NotBeNull();
+        ok!.Value.Should().BeEquivalentTo(usuario);
+    }
+
+    [Fact]
+    public async Task GetUsuario_ShouldReturnNotFound_WhenMissing()
+    {
+        _mock.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((UsuarioReadDto?)null);
+
+        ActionResult<UsuarioReadDto> result = await _controller.GetUsuario(99);
+        result.Result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task InativarUsuario_ShouldReturnNoContent_WhenSuccess()
+    {
+        _mock.Setup(s => s.InativarAsync(1)).ReturnsAsync(true);
+
+        IActionResult result = await _controller.InativarUsuario(1);
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task InativarUsuario_ShouldReturnNotFound_WhenMissing()
+    {
+        _mock.Setup(s => s.InativarAsync(99)).ReturnsAsync(false);
+
+        IActionResult result = await _controller.InativarUsuario(99);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 }

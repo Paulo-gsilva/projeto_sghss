@@ -153,4 +153,30 @@ public class ConsultaControllerTests
         mock.Verify(s => s.CancelarAsync(999), Times.Once);
     }
     
+    [Fact]
+    public async Task Concluir_ShouldReturnNoContent_WhenSuccess()
+    {
+        Mock<IConsultaService> serviceMock = new Mock<IConsultaService>();
+        serviceMock.Setup(s => s.ConcluirAsync(1)).ReturnsAsync(true);
+
+        ConsultasController controller = CreateControllerWithUserClaims(serviceMock.Object, isPaciente: false);
+
+        IActionResult result = await controller.Concluir(1);
+
+        result.Should().BeOfType<NoContentResult>();
+        serviceMock.Verify(s => s.ConcluirAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task Concluir_ShouldReturnNotFound_WhenMissing()
+    {
+        Mock<IConsultaService> serviceMock = new Mock<IConsultaService>();
+        serviceMock.Setup(s => s.ConcluirAsync(99)).ReturnsAsync(false);
+
+        ConsultasController controller = CreateControllerWithUserClaims(serviceMock.Object, isPaciente: false);
+
+        IActionResult result = await controller.Concluir(99);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
 }
